@@ -8,7 +8,16 @@ snapshot = MiniRacer::Snapshot.new([
   File.read('./xstate.js'),
 ].join("\n"))
 context = MiniRacer::Context.new(snapshot: snapshot)
+config = File.read('./bid.js')
 
 context.attach("console.log", proc{|*args| puts args })
 
-context.eval File.read('./example.js')
+def send_event(context, config, event)
+  context.eval """
+    const machine = XState.createMachine(#{config});
+    const service = XState.interpret(machine).start();
+    service.send('#{event}');
+  """
+end
+
+puts send_event(context, config, 'DECLINE')
