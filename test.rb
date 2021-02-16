@@ -11,4 +11,4 @@ context = MiniRacer::Context.new(snapshot: snapshot)
 
 context.attach("console.log", proc{|*args| puts args })
 
-context.eval File.read('./machine.js')
+context.eval File.read('./example.js')
