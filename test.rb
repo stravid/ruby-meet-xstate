@@ -12,12 +12,28 @@ config = File.read('./bid.js')
 
 context.attach("console.log", proc{|*args| puts args })
 
-def send_event(context, config, event)
-  context.eval """
-    const machine = XState.createMachine(#{config});
-    const service = XState.interpret(machine).start();
-    service.send('#{event}');
-  """
+def send_event(context, config, state, event)
+  if state.nil?
+    context.eval """
+      var machine = XState.createMachine(#{config});
+      var service = XState.interpret(machine).start();
+      service.send('#{event}');
+    """
+  else
+    context.eval """
+      var machine = XState.createMachine(#{config});
+      var state = XState.State.create(JSON.parse('#{state.to_json}'));
+      var resolvedState = machine.resolveState(state);
+      var service = XState.interpret(machine).start(resolvedState);
+      service.send('#{event}');
+    """
+  end
 end
 
-puts send_event(context, config, 'DECLINE')
+a = send_event(context, config, nil, 'DECLINE')
+b = send_event(context, config, a, 'DB_DONE')
+c = send_event(context, config, b, 'HTTP_DONE')
+
+puts a
+puts b
+puts c
